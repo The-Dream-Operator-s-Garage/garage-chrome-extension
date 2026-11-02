@@ -1,0 +1,58 @@
+import { load } from './lib/queue.js'
+import { testKey } from './lib/client.js'
+
+const $ = (id) => document.getElementById(id)
+const storage = chrome.storage.local
+const say = (text, cls = '') => { $('status').textContent = text; $('status').className = 'note ' + cls }
+
+const read = () => ({
+  enabled: $('enabled').checked,
+  key: $('key').value.trim(),
+  apiOrigin: $('apiOrigin').value,
+  profile: $('profile').value.trim() || 'Default',
+  youtube: $('youtube').checked,
+  blocklist: $('blocklist').value.split(/[\s,]+/).map((s) => s.trim()).filter(Boolean)
+})
+
+const show = async () => {
+  const { settings } = await load(storage)
+  $('enabled').checked = !!settings.enabled
+  $('key').value = settings.key || ''
+  $('apiOrigin').value = settings.apiOrigin
+  $('profile').value = settings.profile || ''
+  $('youtube').checked = !!settings.youtube
+  $('blocklist').value = (settings.blocklist || []).join('\n')
+}
+
+$('save').addEventListener('click', async () => {
+  const next = read()
+  if (next.key && !/^pcs_[0-9a-f]{48}$/.test(next.key)) { say('That is not a pathos.cloud key (pcs_ + 48 characters).', 'bad'); return }
+  await storage.set({ settings: next })
+  await chrome.runtime.sendMessage({ type: 'settings-changed' })
+  say('Saved.', 'ok')
+})
+
+$('test').addEventListener('click', async () => {
+  const s = read()
+  if (!s.key) { say('Paste your key first.', 'bad'); return }
+  say('Testing…')
+  const r = await testKey(s)
+  say(r.ok ? `Works — ${r.total} visit(s) on ${r.skeleton?.name || 'your history'} #${r.skeleton?.id}.` : `No: ${r.message}`, r.ok ? 'ok' : 'bad')
+})
+
+// Switching the YouTube module on asks for youtube.com — from this click,
+// as Chrome requires; switching it off gives the permission back.
+$('youtube').addEventListener('change', async (e) => {
+  if (e.target.checked) {
+    const granted = await chrome.permissions.request({ origins: ['https://www.youtube.com/*'] })
+    if (!granted) { e.target.checked = false; say('YouTube stays off — access was not granted.', 'bad'); return }
+  } else {
+    await chrome.permissions.remove({ origins: ['https://www.youtube.com/*'] }).catch(() => {})
+  }
+  const { settings } = await load(storage)
+  await storage.set({ settings: { ...settings, youtube: e.target.checked } })
+  await chrome.runtime.sendMessage({ type: 'settings-changed' })
+  say(e.target.checked ? 'YouTube module on.' : 'YouTube module off.', 'ok')
+})
+
+show()

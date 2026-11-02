@@ -1,0 +1,35 @@
+/* The Garage's two small pages — options and popup — on the pathos.cloud
+   palette: cream sheet, brown ink, the teal of a node. */
+:root {
+  --cream: #fbf8f1;
+  --card: #ffffff;
+  --ink: #4e342e;
+  --mute: #8d6e63;
+  --rule: #d7ccc8;
+  --teal: #00796b;
+  --teal-soft: #e0f2f1;
+  --red: #b71c1c;
+  color-scheme: light;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--cream); color: var(--ink); font: 13px/1.45 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+h1 { font-size: 16px; margin: 0 0 2px; }
+h2 { font-size: 12px; text-transform: uppercase; letter-spacing: .06em; color: var(--mute); margin: 18px 0 6px; }
+.sub { color: var(--mute); margin: 0 0 12px; }
+.card { background: var(--card); border: 1px solid var(--rule); border-radius: 8px; padding: 12px; }
+label { display: block; margin: 8px 0 4px; font-weight: 600; }
+input[type=text], input[type=password], select, textarea { width: 100%; padding: 6px 8px; border: 1px solid var(--rule); border-radius: 6px; background: #fff; color: var(--ink); font: inherit; }
+textarea { min-height: 70px; font-family: ui-monospace, Menlo, monospace; font-size: 12px; }
+.row { display: flex; align-items: center; gap: 8px; }
+.toggle { display: flex; align-items: flex-start; gap: 8px; margin: 8px 0; font-weight: 400; }
+.toggle input { margin-top: 3px; }
+button { padding: 5px 12px; border: 1px solid var(--teal); border-radius: 6px; background: var(--teal); color: #fff; font: inherit; cursor: pointer; }
+button.quiet { background: transparent; color: var(--teal); }
+button:disabled { opacity: .5; cursor: default; }
+.mono { font-family: ui-monospace, Menlo, monospace; font-size: 12px; }
+.note { color: var(--mute); font-size: 12px; margin: 6px 0 0; }
+.ok { color: var(--teal); }
+.bad { color: var(--red); }
+.stat { display: flex; justify-content: space-between; padding: 4px 0; border-bottom: 1px dashed var(--rule); }
+.stat:last-child { border-bottom: 0; }
+a { color: var(--teal); }

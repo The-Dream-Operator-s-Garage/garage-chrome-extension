@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Garage</title>
+  <link rel="stylesheet" href="ui.css">
+  <style>body { width: 280px; padding: 12px; } .acts { display: flex; gap: 6px; margin-top: 10px; } .acts > * { flex: 1; text-align: center; }</style>
+</head>
+<body>
+  <h1>history upload</h1>
+  <p class="sub" id="mode"></p>
+  <div class="card">
+    <div class="stat"><span>Visits today</span><b id="today">0</b></div>
+    <div class="stat"><span>Waiting to send</span><b id="queued">0</b></div>
+    <div class="stat"><span>Last sent</span><span id="last" class="mono">—</span></div>
+  </div>
+  <p id="error" class="note bad"></p>
+  <div class="acts">
+    <button id="flush">Send now</button>
+    <button id="open" class="quiet">My history</button>
+  </div>
+  <p class="note"><a href="#" id="options">Options</a></p>
+<script type="module" src="popup.js"></script>
+</body>
+</html>

@@ -1,0 +1,21 @@
+{
+  "manifest_version": 3,
+  "name": "Dream Operator's Garage",
+  "short_name": "Garage",
+  "version": "0.1.0",
+  "description": "The Dream Operator's Garage in your browser. First functionality — pathos.cloud :: history upload: the pages you visit, on your own pathchain.",
+  "homepage_url": "https://pathos.cloud/",
+  "background": { "service_worker": "sw.js", "type": "module" },
+  "permissions": ["history", "storage", "alarms", "tabs", "scripting"],
+  "host_permissions": ["https://api.pathos.cloud/*", "http://localhost:3000/*"],
+  "optional_host_permissions": ["https://www.youtube.com/*"],
+  "incognito": "not_allowed",
+  "options_ui": { "page": "options.html", "open_in_tab": true },
+  "action": {
+    "default_title": "pathos.cloud :: history upload",
+    "default_popup": "popup.html",
+    "default_icon": { "16": "icons/icon16.png", "32": "icons/icon32.png", "48": "icons/icon48.png" }
+  },
+  "icons": { "16": "icons/icon16.png", "32": "icons/icon32.png", "48": "icons/icon48.png", "128": "icons/icon128.png" },
+  "minimum_chrome_version": "116"
+}

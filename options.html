@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Garage — options</title>
+  <link rel="stylesheet" href="ui.css">
+  <style>main { max-width: 560px; margin: 24px auto; padding: 0 16px; }</style>
+</head>
+<body>
+<main>
+  <h1>Dream Operator's Garage</h1>
+  <p class="sub">pathos.cloud :: history upload — the pages you visit, on your own pathchain.</p>
+
+  <div class="card">
+    <label class="toggle"><input type="checkbox" id="enabled"> <span><b>History upload</b> — every page you visit in this profile becomes a visit on your Chrome history record. Incognito windows never do.</span></label>
+
+    <label for="key">Your key</label>
+    <input type="password" id="key" class="mono" placeholder="pcs_…" autocomplete="off" spellcheck="false">
+    <p class="note">Mint it on pathos.cloud: the identity window → <b>Keys</b> → <i>New key → Chrome history</i>. It acts as your Chrome alter-ego, may only add visits to its own history, and cannot publish anything. It is kept on this computer only.</p>
+
+    <label for="apiOrigin">Server</label>
+    <select id="apiOrigin">
+      <option value="https://api.pathos.cloud">pathos.cloud</option>
+      <option value="http://localhost:3000">localhost:3000 (development)</option>
+    </select>
+
+    <label for="profile">This Chrome profile's name</label>
+    <input type="text" id="profile" placeholder="Default" maxlength="80">
+
+    <div class="row" style="margin-top:12px">
+      <button id="save">Save</button>
+      <button id="test" class="quiet">Test the key</button>
+      <span id="status" class="note"></span>
+    </div>
+  </div>
+
+  <h2>YouTube</h2>
+  <div class="card">
+    <label class="toggle"><input type="checkbox" id="youtube"> <span>On a YouTube watch page, also record the video's title, channel and release date. Asks for access to youtube.com when you switch it on; pathos.cloud checks the title and channel with YouTube itself.</span></label>
+  </div>
+
+  <h2>Never record</h2>
+  <div class="card">
+    <textarea id="blocklist" placeholder="one domain per line — bank.example, mail.example"></textarea>
+    <p class="note">A domain here also covers its subdomains. Your own machine (localhost), browser pages and pathos.cloud are never recorded.</p>
+  </div>
+
+  <p class="note">Privacy: <a href="https://pathos.cloud/privacy/" target="_blank" rel="noopener">pathos.cloud/privacy</a> · Source: <a href="https://github.com/The-Dream-Operator-s-Garage/garage-chrome-extension" target="_blank" rel="noopener">github.com/The-Dream-Operator-s-Garage/garage-chrome-extension</a></p>
+</main>
+<script type="module" src="options.js"></script>
+</body>
+</html>
