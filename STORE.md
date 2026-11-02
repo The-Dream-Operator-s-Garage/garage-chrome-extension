@@ -9,7 +9,7 @@ publisher name **Dream Operator's Garage**. Visibility: **Unlisted** first
 ## Store listing
 
 - **Name:** Dream Operator's Garage
-- **Summary (≤132):** Your browsing history, on your own pathos.cloud pathchain — private by default, one node per page, one moment per visit.
+- **Summary (≤132; it IS `manifest.json`'s `description` — the store reads it from the zip, and `npm run package` refuses a longer one):** Your browsing history, on your own pathos.cloud pathchain — private by default, one node per page, one moment per visit.
 - **Category:** Productivity
 - **Language:** English
 - **Description:**

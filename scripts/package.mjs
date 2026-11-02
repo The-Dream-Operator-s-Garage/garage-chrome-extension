@@ -8,6 +8,15 @@ import { execFileSync } from 'node:child_process'
 
 const root = path.resolve(new URL('..', import.meta.url).pathname)
 const manifest = JSON.parse(fs.readFileSync(path.join(root, 'manifest.json'), 'utf8'))
+// The store refuses an upload whose manifest overruns these; fail here, not there.
+const LIMITS = { name: 75, description: 132 }
+for (const [field, max] of Object.entries(LIMITS)) {
+  const n = [...(manifest[field] || '')].length
+  if (n > max) {
+    console.error(`manifest.json ${field} is ${n} characters; the Chrome Web Store allows ${max}.`)
+    process.exit(1)
+  }
+}
 const stage = path.join(root, 'dist', 'stage')
 fs.rmSync(stage, { recursive: true, force: true })
 fs.mkdirSync(stage, { recursive: true })

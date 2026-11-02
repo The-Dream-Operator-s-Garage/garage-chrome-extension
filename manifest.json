@@ -3,7 +3,7 @@
   "name": "Dream Operator's Garage",
   "short_name": "Garage",
   "version": "0.1.0",
-  "description": "The Dream Operator's Garage in your browser. First functionality — pathos.cloud :: history upload: the pages you visit, on your own pathchain.",
+  "description": "Your browsing history, on your own pathos.cloud pathchain — private by default, one node per page, one moment per visit.",
   "homepage_url": "https://pathos.cloud/",
   "background": { "service_worker": "sw.js", "type": "module" },
   "permissions": ["history", "storage", "alarms", "tabs", "scripting"],
