@@ -33,7 +33,9 @@ publisher name **Dream Operator's Garage**. Visibility: **Unlisted** first
 
 - **Icon:** `icons/icon128.png`. **Screenshots (1280×800):** the options page;
   the popup; the Chrome history lane on pathos.cloud.
-- **Homepage:** https://pathos.cloud/ · **Support:** the GitHub repository's issues.
+- **Homepage:** https://pathos.cloud/ · **Support URL:** https://pathos.cloud/assistance/
+  (EN + ES — contact, connecting the key, what is never sent, troubleshooting;
+  `?lang=es` for Spanish). Code issues still go to the GitHub repository's issues.
 
 ## Privacy practices tab
 
