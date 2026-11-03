@@ -28,8 +28,12 @@ $('save').addEventListener('click', async () => {
   const next = read()
   if (next.key && !/^pcs_[0-9a-f]{48}$/.test(next.key)) { say('That is not a pathos.cloud key (pcs_ + 48 characters).', 'bad'); return }
   await storage.set({ settings: next })
-  await chrome.runtime.sendMessage({ type: 'settings-changed' })
-  say('Saved.', 'ok')
+  // check the key on Save too — it names the history My history opens
+  const r = next.key ? await testKey(next) : null
+  await chrome.runtime.sendMessage({ type: 'settings-changed', skeletonId: r?.ok ? r.skeleton?.id : null })
+  if (!next.key) say('Saved — no key, nothing is recorded.', 'bad')
+  else if (r.ok) say('Saved — the key works. Pages you open from now on are recorded (a page already open counts when you next open it).', 'ok')
+  else say(`Saved, but the key did not answer: ${r.message}`, 'bad')
 })
 
 $('test').addEventListener('click', async () => {

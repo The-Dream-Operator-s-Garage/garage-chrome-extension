@@ -46,6 +46,20 @@ test('enqueue: a visit queues once, the fragment dropped; the same page within 3
   assert.match(queue[0].clientVisitId, /^[A-Za-z0-9_-]{6,64}$/)
 })
 
+test('a skipped page is remembered with its reason (the popup says it); a queued one clears it; frames and browser pages never', async () => {
+  const s = on({ key: '' })
+  await enqueueVisit(s, item('https://www.youtube.com/watch?v=abc'), visit(), { now: 1000 })
+  assert.deepEqual((await load(s)).state.lastSkip, { host: 'www.youtube.com', reason: 'no key', at: 1000 })
+  await s.set({ settings: { ...(await load(s)).settings, key: KEY } })
+  await enqueueVisit(s, item('https://a.example/x'), visit('auto_subframe'), { now: 2000 })
+  await enqueueVisit(s, item('chrome-extension://abc/options.html'), visit('typed'), { now: 2500 })
+  assert.equal((await load(s)).state.lastSkip.reason, 'no key')
+  await enqueueVisit(s, item('https://a.example/x'), visit('reload'), { now: 3000 })
+  assert.equal((await load(s)).state.lastSkip.reason, 'transition reload')
+  await enqueueVisit(s, item('https://a.example/y'), visit(), { now: 4000 })
+  assert.equal((await load(s)).state.lastSkip, null)
+})
+
 test('titles and pages find their visit by the link key', async () => {
   const s = on()
   await enqueueVisit(s, item('https://www.youtube.com/watch?v=abc'), visit())

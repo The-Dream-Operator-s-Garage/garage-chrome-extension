@@ -13,7 +13,7 @@
 // every counter live in chrome.storage.local (never sync — the key is a
 // credential).
 
-import { enqueueVisit, fillTitle, attachPage, load, DEFAULT_SETTINGS } from './lib/queue.js'
+import { enqueueVisit, fillTitle, attachPage, load, patchState, DEFAULT_SETTINGS } from './lib/queue.js'
 import { flush } from './lib/client.js'
 
 const storage = chrome.storage.local
@@ -80,8 +80,10 @@ chrome.runtime.onMessage.addListener((msg, sender, reply) => {
   if (msg?.type === 'page' && sender.tab && !sender.tab.incognito) { attachPage(storage, msg.url, msg.page); return false }
   if (msg?.type === 'flush') { doFlush({ force: true }).then(reply); return true }
   if (msg?.type === 'settings-changed') {
-    load(storage).then(async ({ state }) => {
-      await storage.set({ state: { ...state, blocked: null, nextAttemptAt: null, failures: 0, lastError: null } })
+    // a fresh key starts clean; the options page's check names its history
+    const fresh = { blocked: null, nextAttemptAt: null, failures: 0, lastError: null, lastSkip: null }
+    if (msg.skeletonId) fresh.skeletonId = msg.skeletonId
+    patchState(storage, fresh).then(async () => {
       await syncYoutubeScript()
       await refreshBadge()
       reply({ ok: true })
