@@ -8,7 +8,9 @@ does with data.
 address and title of each page you visit in the profile where the extension
 is installed, the time of the visit, and Chrome's transition type (typed, a
 link, …). With the optional YouTube module on: the title, channel and release
-date a YouTube watch page states about its video.
+date a YouTube watch page states about its video. When you press **Pin** in
+the extension's window: the address of the page in front of you (the button
+first asks whether it is already pinned — the same address, nothing more).
 
 **What it never collects.** Incognito browsing, page contents, form data,
 passwords, cookies, `chrome://` and `file://` pages, your own machine
@@ -17,8 +19,9 @@ passwords, cookies, `chrome://` and `file://` pages, your own machine
 **Where it goes.** Only to `https://api.pathos.cloud`, over HTTPS, authenticated
 by the key you minted — into a record owned by your own Chrome alter-ego on
 your pathchain. It is private to that alter-ego and to you (your root reads
-it through a delegation you can revoke). The extension cannot publish it; the
-key it holds has no publishing power. pathos.cloud does not sell this data or
+it through a delegation you can revoke). A page you pin lands on your own
+pins, private to you. The extension cannot publish any of it; the key it
+holds has no publishing power. pathos.cloud does not sell this data or
 use it for advertising.
 
 **What stays on your computer.** The key and the queue of visits not yet

@@ -14,12 +14,23 @@ by default, and never published by the extension.
 2. Paste the key in this extension's options page. It is stored in
    `chrome.storage.local` on this computer only — never synced.
 3. Browse. The service worker queues each visit (`history.onVisited`), fills
-   the page title when the tab finishes loading, and sends batches to
-   `https://api.pathos.cloud/api/extensions/visits` every minute.
+   the page title when the tab finishes loading, and — with **Upload
+   automatically** on (the default, 0.2.0) — sends it to
+   `https://api.pathos.cloud/api/extensions/visits` as soon as it is ready,
+   within a second or two of the page loading. A minute alarm retries
+   whatever could not go. Switch the option off and visits wait in the
+   extension until you press *Send now* in its window.
+4. **Pin** (0.2.0): the extension's window shows the page in front of you and
+   a *Pin* button that pins it onto your pathos.cloud pins — your root
+   account's, the one your Chrome alter-ego belongs to. If pathos.cloud
+   already holds that page (a post's link, an earlier visit) the pin and
+   every visit reference that same node; nothing is minted twice.
 
 What the key can do is decided by the server, not by this code: it acts as
-your Chrome alter-ego, may add visits to its own history and look up its own
-links, and can never publish, grant access, message, or manage keys. You can
+your Chrome alter-ego, may add visits to its own history, look up its own
+links and — with the `pin` scope — pin pages onto your pins, and can never
+publish, grant access, message, or manage keys. A key minted before 0.2.0
+pins once you switch on **Pins** beside it in the Keys well. You can
 revoke it from the Keys well at any time; your root identity reads the whole
 history through the alter-ego's delegation.
 
@@ -64,7 +75,7 @@ modules in Node and the unpacked extension in Chromium against a local API.
 | `manifest.json` | MV3; permissions `history`, `storage`, `alarms`, `tabs`, `scripting`; host `api.pathos.cloud` (+ `localhost:3000` for development, stripped from the store package); optional `www.youtube.com` |
 | `sw.js` | the service worker — events in, flushes out; no state in memory |
 | `lib/queue.js` | the queue in `chrome.storage.local`: what queues, titles, YouTube pages, the one-writer chain |
-| `lib/client.js` | the flush: one POST per batch, backoff, blocked on a refused key |
+| `lib/client.js` | the flush: one POST per batch, backoff, blocked on a refused key; `pinCall` — the Pin button's three calls |
 | `lib/linkKey.js` | vendored from pathos.cloud's API — the identity of a link |
 | `lib/exclude.js` | what never leaves the browser |
 | `content/youtube.js` | the optional YouTube reader |

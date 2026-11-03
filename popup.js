@@ -1,4 +1,6 @@
 import { load } from './lib/queue.js'
+import { pinCall } from './lib/client.js'
+import { excluded, hostOf } from './lib/exclude.js'
 
 const $ = (id) => document.getElementById(id)
 const storage = chrome.storage.local
@@ -21,7 +23,7 @@ const WHY = {
 
 const show = async () => {
   const { settings, queue, state } = await load(storage)
-  $('mode').textContent = !settings.key ? 'No key yet — open Options.' : settings.enabled ? `Recording · ${settings.profile}` : 'Paused'
+  $('mode').textContent = !settings.key ? 'No key yet — open Options.' : settings.enabled ? `Recording · ${settings.profile} · ${settings.autoUpload === false ? 'sends when you press Send now' : 'uploads automatically'}` : 'Paused'
   $('today').textContent = state.day === new Date().toISOString().slice(0, 10) ? String(state.sentToday || 0) : '0'
   $('queued').textContent = String(queue.length)
   $('last').textContent = ago(state.lastFlushAt)
@@ -47,6 +49,56 @@ const told = (r = {}, queued) => {
   return ''
 }
 
+// THE PIN BUTTON (0.2.0): the page in front of you, pinned onto the
+// pathos.cloud account your key belongs to (your root — the Chrome alter-ego
+// writes the history, you pin from it). The page's node is the history's
+// own: found, or minted exactly as its visit would mint it.
+let tabPage = null   // { url, title }
+const pinView = (r) => {
+  const b = $('pin')
+  if (!r) return
+  if (r.ok) {
+    b.disabled = false
+    b.classList.toggle('on', r.pinned)
+    $('pinword').textContent = r.pinned ? 'Pinned' : 'Pin'
+    b.title = r.pinned ? 'Pinned — click to unpin' : 'Pin this page onto your pathos.cloud pins'
+    const who = r.account?.display_name ? `${r.account.display_name}'s pins` : 'your pins'
+    $('pinsaid').className = 'note ok'
+    $('pinsaid').textContent = r.pinned ? `On ${who}.` : ''
+    return
+  }
+  b.disabled = r.code === 40322 || r.status === 403
+  $('pinsaid').textContent = r.code === 40322
+    ? 'This key cannot pin yet — on pathos.cloud: identity window → Keys → switch on Pins beside it.'
+    : r.status === 401 ? 'The key was refused — paste a new one in Options.' : `Pin: ${r.message}`
+  $('pinsaid').className = 'note bad'
+}
+const showPin = async () => {
+  const { settings } = await load(storage)
+  // the page in front of you; `#tab=<id>` names one (the witness opens this
+  // popup as a tab of its own, which would otherwise be the active page)
+  const named = Number(new URLSearchParams(location.hash.slice(1)).get('tab')) || null
+  const [tab] = named ? [await chrome.tabs.get(named).catch(() => null)] : await chrome.tabs.query({ active: true, currentWindow: true }).catch(() => [])
+  const url = tab?.url ? String(tab.url).split('#')[0] : null
+  const host = url ? hostOf(url) : null
+  $('pagetitle').textContent = tab?.title || host || 'This page'
+  $('pagehost').textContent = host || ''
+  if (!host) { $('pinsaid').textContent = 'Only web pages can be pinned.'; return }
+  if (excluded(url, settings.blocklist)) { $('pinsaid').textContent = 'This page is never recorded, so it cannot be pinned.'; return }
+  if (!settings.key) { $('pinsaid').textContent = 'Save a key in Options to pin.'; return }
+  tabPage = { url, title: tab.title || null }
+  pinView(await pinCall(settings, url, 'state'))
+}
+$('pin').addEventListener('click', async () => {
+  if (!tabPage) return
+  const { settings } = await load(storage)
+  const on = $('pin').classList.contains('on')
+  $('pin').disabled = true
+  $('pinsaid').className = 'note'
+  $('pinsaid').textContent = on ? 'Unpinning…' : 'Pinning…'
+  pinView(await pinCall(settings, tabPage.url, on ? 'unpin' : 'pin'))
+})
+
 $('flush').addEventListener('click', async () => {
   $('flush').disabled = true
   $('said').textContent = 'Sending…'
@@ -64,3 +116,4 @@ $('open').addEventListener('click', async () => {
 $('options').addEventListener('click', (e) => { e.preventDefault(); chrome.runtime.openOptionsPage() })
 
 show()
+showPin()

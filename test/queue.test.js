@@ -144,3 +144,46 @@ test('flush: 200 empties what landed; 401 blocks; network errors back off', asyn
   assert.equal((await flush(s, { fetchImpl: ok })).skipped, 'blocked: key')
   assert.equal((await load(s)).queue.length, 1, 'the visit waits for a new key')
 })
+
+test('0.2.0 upload automatically: on by default; the alarm skips when it is off, Send now still sends', async () => {
+  const { DEFAULT_SETTINGS } = await import('../lib/queue.js')
+  assert.equal(DEFAULT_SETTINGS.autoUpload, true)
+  const s = on({ autoUpload: false })
+  await enqueueVisit(s, item('https://a.example/x', 'X'), visit())
+  let posted = 0
+  const fetchImpl = async () => { posted++; return { status: 200, ok: true, headers: { get: () => null }, json: async () => ({ success: true, skeleton: { id: 9 }, results: [] }) } }
+  assert.deepEqual(await flush(s, { fetchImpl }), { skipped: 'manual' })
+  assert.equal(posted, 0)
+  await flush(s, { fetchImpl, force: true })
+  assert.equal(posted, 1)
+})
+
+test('0.2.0 a YouTube watch visit waits for the module (or its grace) before it is ready; nextReadyIn says when', async () => {
+  const { nextReadyIn } = await import('../lib/queue.js')
+  const s = on({ youtube: true })
+  await enqueueVisit(s, item('https://www.youtube.com/watch?v=abc', 'A video - YouTube'), visit(), { now: 1000 })
+  await enqueueVisit(s, item('https://a.example/', 'A'), visit('link', true, '2026-11-02T19:01:00Z'), { now: 1000 })
+  let { queue } = await load(s)
+  assert.equal(queue[0].expectsPage, true)
+  assert.deepEqual(readyBatch(queue, { now: 2000 }).map((v) => v.url), ['https://a.example/'])
+  assert.equal(nextReadyIn(queue, { now: 2000 }), 9000)
+  await attachPage(s, 'https://youtube.com/watch?v=abc', { id: 'abc', channel: 'C' })
+  queue = (await load(s)).queue
+  assert.equal(readyBatch(queue, { now: 2000 }).length, 2)
+  assert.equal(nextReadyIn(queue, { now: 2000 }), null)
+  assert.equal(readyBatch(queue, { now: 11001 }).length, 2, 'the grace still sends it without the module')
+})
+
+test('0.2.0 the pin call: state / pin / unpin, the URL in the body never the query string', async () => {
+  const { pinCall } = await import('../lib/client.js')
+  const calls = []
+  const fetchImpl = async (u, init) => { calls.push({ u, method: init.method, body: JSON.parse(init.body) }); return { status: 200, ok: true, json: async () => ({ success: true, pinned: init.method !== 'DELETE', account: { id: 1, display_name: 'Me' } }) } }
+  const st = { apiOrigin: 'http://api.test/', key: KEY }
+  assert.equal((await pinCall(st, 'https://a.example/p?q=1', 'state', { fetchImpl })).pinned, true)
+  await pinCall(st, 'https://a.example/p?q=1', 'pin', { fetchImpl })
+  assert.equal((await pinCall(st, 'https://a.example/p?q=1', 'unpin', { fetchImpl })).pinned, false)
+  assert.deepEqual(calls.map((c) => `${c.method} ${c.u}`), ['POST http://api.test/api/extensions/pins/state', 'POST http://api.test/api/extensions/pins', 'DELETE http://api.test/api/extensions/pins'])
+  assert.ok(calls.every((c) => c.body.url === 'https://a.example/p?q=1' && !c.u.includes('?')))
+  const refused = await pinCall(st, 'https://a.example/', 'pin', { fetchImpl: async () => ({ status: 403, ok: false, json: async () => ({ success: false, error: { code: 40322, message: 'scope' } }) }) })
+  assert.deepEqual([refused.ok, refused.code], [false, 40322])
+})

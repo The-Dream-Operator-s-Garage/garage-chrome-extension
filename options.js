@@ -7,6 +7,7 @@ const say = (text, cls = '') => { $('status').textContent = text; $('status').cl
 
 const read = () => ({
   enabled: $('enabled').checked,
+  autoUpload: $('autoUpload').checked,
   key: $('key').value.trim(),
   apiOrigin: $('apiOrigin').value,
   profile: $('profile').value.trim() || 'Default',
@@ -17,6 +18,7 @@ const read = () => ({
 const show = async () => {
   const { settings } = await load(storage)
   $('enabled').checked = !!settings.enabled
+  $('autoUpload').checked = settings.autoUpload !== false
   $('key').value = settings.key || ''
   $('apiOrigin').value = settings.apiOrigin
   $('profile').value = settings.profile || ''
@@ -32,7 +34,7 @@ $('save').addEventListener('click', async () => {
   const r = next.key ? await testKey(next) : null
   await chrome.runtime.sendMessage({ type: 'settings-changed', skeletonId: r?.ok ? r.skeleton?.id : null })
   if (!next.key) say('Saved — no key, nothing is recorded.', 'bad')
-  else if (r.ok) say('Saved — the key works. Pages you open from now on are recorded (a page already open counts when you next open it).', 'ok')
+  else if (r.ok) say(`Saved — the key works. Pages you open from now on are recorded${next.autoUpload ? ' and uploaded as they load' : ' — press Send now to upload them'} (a page already open counts when you next open it).`, 'ok')
   else say(`Saved, but the key did not answer: ${r.message}`, 'bad')
 })
 

@@ -4,7 +4,16 @@
   <meta charset="utf-8">
   <title>Garage</title>
   <link rel="stylesheet" href="ui.css">
-  <style>body { width: 280px; padding: 12px; } .acts { display: flex; gap: 6px; margin-top: 10px; } .acts > * { flex: 1; text-align: center; }</style>
+  <style>
+    body { width: 280px; padding: 12px; }
+    .acts { display: flex; gap: 6px; margin-top: 10px; } .acts > * { flex: 1; text-align: center; }
+    .pin { margin-top: 10px; display: flex; align-items: center; gap: 8px; }
+    .pin .page { flex: 1; min-width: 0; }
+    .pin .page b, .pin .page span { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .pin .page span { color: var(--mute); font-size: 11px; }
+    #pin { flex: none; display: inline-flex; align-items: center; gap: 4px; }
+    #pin.on { background: var(--teal-soft); color: var(--teal); }
+  </style>
 </head>
 <body>
   <h1>history upload</h1>
@@ -14,6 +23,14 @@
     <div class="stat"><span>Waiting to send</span><b id="queued">0</b></div>
     <div class="stat"><span>Last sent</span><span id="last" class="mono">—</span></div>
   </div>
+  <div class="card pin" id="pincard">
+    <div class="page"><b id="pagetitle">—</b><span id="pagehost"></span></div>
+    <button id="pin" disabled title="Pin this page onto your pathos.cloud pins">
+      <svg width="12" height="12" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M16 9V4h1V2H7v2h1v5c0 1.66-1.34 3-3 3v2h5.97v7l1 1 1-1v-7H19v-2c-1.66 0-3-1.34-3-3z"/></svg>
+      <span id="pinword">Pin</span>
+    </button>
+  </div>
+  <p id="pinsaid" class="note"></p>
   <p id="lastpage" class="note"></p>
   <p id="error" class="note bad"></p>
   <div class="acts">

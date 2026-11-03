@@ -14,10 +14,11 @@
 
   <div class="card">
     <label class="toggle"><input type="checkbox" id="enabled"> <span><b>History upload</b> — every page you visit in this profile becomes a visit on your Chrome history record. Incognito windows never do.</span></label>
+    <label class="toggle"><input type="checkbox" id="autoUpload"> <span><b>Upload automatically</b> — each page is sent to pathos.cloud as soon as it has loaded, nothing to press. Off: pages wait in the extension until you press <i>Send now</i> in its window.</span></label>
 
     <label for="key">Your key</label>
     <input type="password" id="key" class="mono" placeholder="pcs_…" autocomplete="off" spellcheck="false">
-    <p class="note">Mint it on pathos.cloud: the identity window → <b>Keys</b> → <i>New key → Chrome history</i>. It acts as your Chrome alter-ego, may only add visits to its own history, and cannot publish anything. It is kept on this computer only.</p>
+    <p class="note">Mint it on pathos.cloud: the identity window → <b>Keys</b> → <i>New key → Chrome history</i>. It acts as your Chrome alter-ego, may only add visits to its own history and pin pages onto your pins (the window's <i>Pin</i> button), and cannot publish anything. It is kept on this computer only. A key made before 0.2.0 pins once you switch on <b>Pins</b> beside it in the Keys list.</p>
 
     <label for="apiOrigin">Server</label>
     <select id="apiOrigin">

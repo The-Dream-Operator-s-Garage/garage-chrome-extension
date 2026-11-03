@@ -7,13 +7,17 @@
 //   · tabs.onUpdated(complete) → the tab's title onto that visit (onVisited
 //     fires before the page loads; a visit waits up to 10 s for it);
 //   · the YouTube module's message → the page's channel and date onto it;
-//   · an alarm every minute (and 20 queued, and the popup's Flush now) →
-//     lib/client.js's flush.
+//   · Upload automatically (0.2.0, on by default): a visit is sent as soon
+//     as it is ready — its title arrived (and, on a YouTube watch page, the
+//     module's channel + date), or its 10 s grace ran out — so the history
+//     on pathos.cloud follows the browsing within seconds;
+//   · an alarm every minute (the retry net), 20 queued, and the popup's
+//     Send now → lib/client.js's flush.
 // No state in memory: an MV3 worker dies after 30 s idle, so the queue and
 // every counter live in chrome.storage.local (never sync — the key is a
 // credential).
 
-import { enqueueVisit, fillTitle, attachPage, load, patchState, DEFAULT_SETTINGS } from './lib/queue.js'
+import { enqueueVisit, fillTitle, attachPage, load, patchState, nextReadyIn, DEFAULT_SETTINGS } from './lib/queue.js'
 import { flush } from './lib/client.js'
 
 const storage = chrome.storage.local
@@ -36,10 +40,35 @@ const syncYoutubeScript = async () => {
   }
 }
 
-const doFlush = async (opts = {}) => {
-  const r = await flush(storage, opts)
-  await refreshBadge()
-  return r
+// One flush in flight at a time: an automatic send, the alarm and Send now
+// may all land together; the second waits for the first's answer and then
+// runs on what is still queued (the batch ids make any overlap idempotent).
+let inFlight = Promise.resolve()
+const doFlush = (opts = {}) => {
+  const run = inFlight.then(async () => {
+    const r = await flush(storage, opts)
+    await refreshBadge()
+    return r
+  })
+  inFlight = run.catch(() => {})
+  return run
+}
+
+// UPLOAD AUTOMATICALLY: send what is ready now; if a visit still waits for
+// its title / page, look again when its grace runs out. The timer lives only
+// as long as this worker — the minute alarm is the net when Chrome kills it.
+let soonTimer = null
+const sendSoon = async (delayMs = 300) => {
+  const { settings } = await load(storage)
+  if (settings.autoUpload === false || !settings.enabled || !settings.key) return
+  clearTimeout(soonTimer)
+  soonTimer = setTimeout(async () => {
+    soonTimer = null
+    await doFlush()
+    const { queue } = await load(storage)
+    const wait = nextReadyIn(queue)
+    if (wait != null) sendSoon(wait + 250)
+  }, delayMs)
 }
 
 const refreshBadge = async () => {
@@ -69,15 +98,20 @@ chrome.history.onVisited.addListener(async (item) => {
   if (!r.queued) return
   const { queue } = await load(storage)
   if (queue.length >= FLUSH_AT) doFlush()
-  else refreshBadge()
+  else { refreshBadge(); sendSoon() }   // titled already → now; else when the title (or its grace) comes
 })
 
-chrome.tabs.onUpdated.addListener((tabId, info, tab) => {
-  if (info.status === 'complete' && tab?.url && tab.title && !tab.incognito) fillTitle(storage, tab.url, tab.title)
+chrome.tabs.onUpdated.addListener(async (tabId, info, tab) => {
+  if (info.status === 'complete' && tab?.url && tab.title && !tab.incognito) {
+    if (await fillTitle(storage, tab.url, tab.title)) sendSoon()
+  }
 })
 
 chrome.runtime.onMessage.addListener((msg, sender, reply) => {
-  if (msg?.type === 'page' && sender.tab && !sender.tab.incognito) { attachPage(storage, msg.url, msg.page); return false }
+  if (msg?.type === 'page' && sender.tab && !sender.tab.incognito) {
+    attachPage(storage, msg.url, msg.page).then((attached) => { if (attached) sendSoon() })
+    return false
+  }
   if (msg?.type === 'flush') { doFlush({ force: true }).then(reply); return true }
   if (msg?.type === 'settings-changed') {
     // a fresh key starts clean; the options page's check names its history
@@ -86,6 +120,7 @@ chrome.runtime.onMessage.addListener((msg, sender, reply) => {
     patchState(storage, fresh).then(async () => {
       await syncYoutubeScript()
       await refreshBadge()
+      sendSoon()   // switching Upload automatically on sends what waited
       reply({ ok: true })
     })
     return true

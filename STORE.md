@@ -20,8 +20,12 @@ publisher name **Dream Operator's Garage**. Visibility: **Unlisted** first
   moment-stamped reference on a history record owned by your Chrome alter-ego.
   Only you read it.
 
-  • Private by default — the extension's key can add visits and nothing else:
-    it cannot publish, share, message, or manage keys.
+  • Automatic — each page is uploaded as soon as it loads (or, if you prefer,
+    only when you press Send now).
+  • Pin — one button in the extension's window pins the page in front of you
+    onto your pathos.cloud pins.
+  • Private by default — the extension's key can add visits and pin pages for
+    you, nothing else: it cannot publish, share, message, or manage keys.
   • You choose what is never recorded: incognito never is; neither is your own
     machine, pathos.cloud, or any domain you list.
   • Optional YouTube module: records a video's title, channel and release
@@ -43,8 +47,8 @@ publisher name **Dream Operator's Garage**. Visibility: **Unlisted** first
 - **Permission justifications:**
   - `history` — to learn which page was visited and when (`history.onVisited`, `history.getVisits`); this is the extension's single purpose.
   - `storage` — to keep the user's key and the queue of visits not yet sent, on this computer only (`chrome.storage.local`).
-  - `alarms` — to send queued visits once a minute; an MV3 service worker cannot keep a timer alive.
-  - `tabs` — to read the title of the page a visit belongs to once the tab finishes loading (the history event fires before the title exists).
+  - `alarms` — to retry queued visits once a minute (visits are sent as they load; the alarm is the net when the network or the server was away); an MV3 service worker cannot keep a timer alive.
+  - `tabs` — to read the title of the page a visit belongs to once the tab finishes loading (the history event fires before the title exists), and the address of the active tab for the window's Pin button.
   - `scripting` — to register the optional YouTube reader only after the user switches it on and grants access to youtube.com.
   - Host `https://api.pathos.cloud/*` — the only server visits are sent to.
   - Optional host `https://www.youtube.com/*` — requested only when the user turns on the YouTube module; reads the video's title, channel and date from the watch page.
